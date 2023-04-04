@@ -1,0 +1,14 @@
+# @format
+
+version: "3"
+
+services:
+    ws:
+        build:
+            context: ./
+        restart: always
+        image: registry.uocra.net/websocketsom:${TAG}
+        ports:
+            - "8080:8080"
+networks:
+    default:
