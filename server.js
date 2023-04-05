@@ -1,15 +1,37 @@
 /** @format */
 
-var WebSocketServer = require("websocket").server;
-var http = require("http");
+let WebSocketServer = require("websocket").server;
+let WebSocketClient = require("websocket").client;
+let http = require("http");
 
-var server = http.createServer(function (request, response) {
+let client = new WebSocketClient();
+let clientConnection = null;
+client.on("connect", (connection) => {
+    console.log("WebSocket Client Connected");
+    clientConnection = connection;
+    connection.on("error", (error) => {
+        console.log("Connection Error: " + error.toString());
+    });
+    connection.on("close", () => {
+        console.log("echo-protocol Connection Closed");
+    });
+    connection.on("message", (message) => {
+        if (message.type === "utf8") {
+            console.log("Received: '" + message.utf8Data + "'");
+        }
+    });
+});
+
+let server = http.createServer((request, response) => {
     console.log(new Date() + " Received request for " + request.url);
+    let IdCaja = request.url.replace("/?IdCaja=", "");
+    clientConnection.sendUTF('{"IdCaja":' + IdCaja + "}");
     response.writeHead(404);
     response.end();
 });
-server.listen(8080, function () {
+server.listen(8080, () => {
     console.log(new Date() + " Server is listening on port 8080");
+    client.connect("ws://localhost:8080/?IdCaja=-99", "");
 });
 
 wsServer = new WebSocketServer({
