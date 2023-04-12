@@ -22,29 +22,17 @@ client.on("connect", (connection) => {
     });
 });
 
-let serverAPI = http.createServer();
-serverAPI.on("request", async (request, response) => {
-    console.log(new Date() + " Received request for " + request.url);
-    let IdCaja = request.url.replace("/?IdCaja=", "");
-
-    clientConnection.sendUTF('{"IdCaja":' + IdCaja + "}");
-    response.writeHead(200);
-    response.end();
-});
-
-serverAPI.listen(8090, () => {
-    console.log(new Date() + " Server is listening on port 8090");
-    client.connect("ws://localhost:8080/?IdCaja=-99", "");
-});
-
 let server = http.createServer();
 server.on("request", async (request, response) => {
     console.log(new Date() + " Received request for " + request.url);
-    response.writeHead(404);
+    let IdCaja = request.url.replace("/?IdCaja=", "");
+    clientConnection.sendUTF('{"de":"database","IdCaja":' + IdCaja + "}");
+    response.writeHead(200);
     response.end();
 });
 server.listen(8080, () => {
     console.log(new Date() + " Server is listening on port 8080");
+    client.connect("ws://localhost:8080/?IdCaja=-99", "");
 });
 
 wsServer = new WebSocketServer({
