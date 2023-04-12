@@ -22,16 +22,29 @@ client.on("connect", (connection) => {
     });
 });
 
-let server = http.createServer((request, response) => {
+let serverAPI = http.createServer();
+serverAPI.on("request", async (request, response) => {
     console.log(new Date() + " Received request for " + request.url);
     let IdCaja = request.url.replace("/?IdCaja=", "");
+
     clientConnection.sendUTF('{"IdCaja":' + IdCaja + "}");
+    response.writeHead(200);
+    response.end();
+});
+
+serverAPI.listen(8090, () => {
+    console.log(new Date() + " Server is listening on port 8090");
+    client.connect("ws://localhost:8080/?IdCaja=-99", "");
+});
+
+let server = http.createServer();
+server.on("request", async (request, response) => {
+    console.log(new Date() + " Received request for " + request.url);
     response.writeHead(404);
     response.end();
 });
 server.listen(8080, () => {
     console.log(new Date() + " Server is listening on port 8080");
-    client.connect("ws://localhost:8080/?IdCaja=-99", "");
 });
 
 wsServer = new WebSocketServer({
@@ -57,7 +70,6 @@ let cajas = [];
 
 wsServer.on("request", (request) => {
     if (!originIsAllowed(request.origin)) {
-        // Make sure we only accept requests from an allowed origin
         request.reject();
         console.log(new Date() + " Connection from origin " + request.origin + " rejected.");
         return;
@@ -77,7 +89,7 @@ wsServer.on("request", (request) => {
 
     console.log(new Date() + " Connection accepted. IdCaja=" + connection.IdCaja);
 
-    connection.on("message", (message) => {
+    connection.on("message", async (message) => {
         if (message.type === "utf8") {
             try {
                 let messageJSON = JSON.parse(message.utf8Data);
