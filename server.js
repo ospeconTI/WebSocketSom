@@ -24,11 +24,23 @@ client.on("connect", (connection) => {
 
 let server = http.createServer();
 server.on("request", async (request, response) => {
-    console.log(new Date() + " Received request for " + request.url);
-    let IdCaja = request.url.replace("/?IdCaja=", "");
-    clientConnection.sendUTF('{"de":"database","IdCaja":' + IdCaja + "}");
-    response.writeHead(200);
-    response.end();
+    let body = "";
+    request.on("readable", () => {
+        let b = request.read();
+        body += b || "";
+    });
+    request.on("end", () => {
+        console.log(body);
+        clientConnection.sendUTF(body);
+        response.writeHead(200);
+        response.end();
+    });
+
+    //console.log(new Date() + " Received request for " + request.url);
+    //let IdCaja = request.url.replace("/?IdCaja=", "");
+    //clientConnection.sendUTF('{"de":"database","IdCaja":' + IdCaja + "}");
+    //response.writeHead(200);
+    //response.end();
 });
 server.listen(8080, () => {
     console.log(new Date() + " Server is listening on port 8080");
